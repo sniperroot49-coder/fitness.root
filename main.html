@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NDA 45-Minute Fitness</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0b1220;
+    color: #e5e7eb;
+    text-align: center;
+    padding: 15px;
+}
+h1 { color: #22d3ee; }
+h2 { color: #38bdf8; }
+.card {
+    background: #020617;
+    border-radius: 14px;
+    padding: 15px;
+    margin: 15px auto;
+    max-width: 420px;
+    box-shadow: 0 0 15px rgba(56,189,248,0.25);
+}
+.time { font-size: 30px; margin: 10px 0; }
+button {
+    padding: 10px 14px;
+    margin: 6px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    background: #38bdf8;
+    color: #020617;
+}
+.list { text-align: left; font-size: 15px; line-height: 1.6; }
+.status { color: #a5f3fc; margin-top: 6px; }
+</style>
+</head>
+
+<body>
+
+<h1>🇮🇳 NDA 45-Minute Fitness</h1>
+
+<div class="card">
+<h2>🔥 Workout Streak</h2>
+<div class="time"><span id="streak">0</span> days</div>
+<button onclick="markDone()">Mark Today Done</button>
+</div>
+
+<div class="card">
+<h2>🤸 Warm-up (5 min)</h2>
+<div class="list">
+* Jog in place – 1 min<br>
+* Jumping jacks – 30 sec<br>
+* Arm & shoulder rotations – 1 min<br>
+* Hip & knee rotations – 1 min<br>
+* High knees – 30 sec<br>
+* Light stretching – 1 min
+</div>
+<div class="time" id="warmTime">05:00</div>
+<button onclick="startWarm()">Start</button>
+<button onclick="resetWarm()">Reset</button>
+</div>
+
+<div class="card">
+<h2>🏃 Interval Running</h2>
+<p>200m Fast + 200m Slow × 5 rounds</p>
+<div class="time" id="runTime">01:00</div>
+<div class="status" id="runStatus">Ready</div>
+<button onclick="startRun()">Start</button>
+<button onclick="resetRun()">Reset</button>
+</div>
+
+<div class="card">
+<h2>💪 Strength Circuit (3 rounds)</h2>
+<div class="list">
+* Push-ups × 15<br>
+* Sit-ups × 15<br>
+* Squats × 20<br>
+* Plank × 30 sec<br>
+* Rest 30 sec
+</div>
+<div class="time" id="strengthTime">15:00</div>
+<button onclick="startStrength()">Start</button>
+<button onclick="resetStrength()">Reset</button>
+</div>
+
+<div class="card">
+<h2>🧘 Plank Timer</h2>
+<div class="time" id="plankTime">00:30</div>
+<button onclick="startPlank()">Start</button>
+<button onclick="resetPlank()">Reset</button>
+</div>
+
+<div class="card">
+<h2>🧊 Cool-down & Stretch (5 min)</h2>
+<div class="list">
+* Hamstring stretch<br>
+* Quad stretch<br>
+* Shoulder & back stretch<br>
+* Deep breathing
+</div>
+<div class="time" id="coolTime">05:00</div>
+<button onclick="startCool()">Start</button>
+<button onclick="resetCool()">Reset</button>
+</div>
+
+<script>
+/* STREAK */
+let streak = parseInt(localStorage.getItem("ndaStreak")) || 0;
+document.getElementById("streak").innerText = streak;
+
+function markDone(){
+  streak++;
+  localStorage.setItem("ndaStreak", streak);
+  document.getElementById("streak").innerText = streak;
+}
+
+/* FORMAT */
+function format(s){
+  return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+}
+
+/* WARM UP */
+let warmInt;
+function startWarm(){
+ if(warmInt) return;
+ let t=300,d=document.getElementById("warmTime");
+ warmInt=setInterval(()=>{ 
+  if(t>0){t--; d.textContent=format(t);}
+  else{clearInterval(warmInt); warmInt=null;}
+ },1000);
+}
+function resetWarm(){
+ clearInterval(warmInt); warmInt=null;
+ document.getElementById("warmTime").textContent="05:00";
+}
+
+/* RUNNING (FIXED TEMPLATE STRINGS) */
+let rounds=5, round=1, fast=true, runSec=60, runInt;
+
+function startRun(){
+ if(runInt) return;
+
+ document.getElementById("runStatus").textContent = `Round ${round}: FAST 🟢`;
+
+ runInt=setInterval(()=>{
+  if(runSec>0){
+    runSec--;
+    document.getElementById("runTime").textContent=format(runSec);
+  } else {
+    fast=!fast;
+    runSec=60;
+
+    if(!fast){
+      document.getElementById("runStatus").textContent = `Round ${round}: SLOW 🔵`;
+    } else {
+      round++;
+      if(round>rounds){
+        clearInterval(runInt); runInt=null;
+        document.getElementById("runStatus").textContent="Completed 🏆";
+        return;
+      }
+      document.getElementById("runStatus").textContent = `Round ${round}: FAST 🟢`;
+    }
+  }
+ },1000);
+}
+
+function resetRun(){
+ clearInterval(runInt); runInt=null;
+ round=1; fast=true; runSec=60;
+ document.getElementById("runTime").textContent="01:00";
+ document.getElementById("runStatus").textContent="Ready";
+}
+
+/* STRENGTH */
+let strInt;
+function startStrength(){
+ if(strInt) return;
+ let t=900,d=document.getElementById("strengthTime");
+ strInt=setInterval(()=>{ 
+  if(t>0){t--; d.textContent=format(t);}
+  else{clearInterval(strInt); strInt=null;}
+ },1000);
+}
+function resetStrength(){
+ clearInterval(strInt); strInt=null;
+ document.getElementById("strengthTime").textContent="15:00";
+}
+
+/* PLANK */
+let pInt,p=30;
+function startPlank(){
+ if(pInt) return;
+ pInt=setInterval(()=>{ 
+  if(p>0){p--; document.getElementById("plankTime").textContent=format(p);}
+  else{clearInterval(pInt); pInt=null;}
+ },1000);
+}
+function resetPlank(){
+ clearInterval(pInt); pInt=null; p=30;
+ document.getElementById("plankTime").textContent="00:30";
+}
+
+/* COOL DOWN */
+let cInt;
+function startCool(){
+ if(cInt) return;
+ let t=300,d=document.getElementById("coolTime");
+ cInt=setInterval(()=>{ 
+  if(t>0){t--; d.textContent=format(t);}
+  else{clearInterval(cInt); cInt=null;}
+ },1000);
+}
+function resetCool(){
+ clearInterval(cInt); cInt=null;
+ document.getElementById("coolTime").textContent="05:00";
+}
+</script>
+
+</body>
+</html>
